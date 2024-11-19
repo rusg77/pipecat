@@ -203,11 +203,13 @@ class FrameProcessor:
     async def __internal_push_frame(self, frame: Frame, direction: FrameDirection):
         try:
             if direction == FrameDirection.DOWNSTREAM and self._next:
-                logger.trace(f"Pushing {frame} from {self} to {self._next}")
+                logger.trace("{} Pushing {} from {} to {}", self.__class__.__name__, frame, self, self._next)
                 await self._next.process_frame(frame, direction)
+                logger.trace("{} Done pushing {} from {} to {}", self.__class__.__name__, frame, self, self._next)
             elif direction == FrameDirection.UPSTREAM and self._prev:
-                logger.trace(f"Pushing {frame} upstream from {self} to {self._prev}")
+                logger.trace("{} Pushing {} upstream from {} to {}", self.__class__.__name__, frame, self, self._prev)
                 await self._prev.process_frame(frame, direction)
+                logger.trace("{} Done pushing {} upstream from {} to {}", self.__class__.__name__, frame, self, self._prev)
         except Exception as e:
             logger.exception(f"Uncaught exception in {self}: {e}")
 
