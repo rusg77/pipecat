@@ -172,11 +172,14 @@ class PipelineTask:
         while running:
             try:
                 frame = await self._push_queue.get()
+                logger.debug("{} push queue: Processing frame {}", self.__class__.__name__, frame)
                 await self._source.process_frame(frame, FrameDirection.DOWNSTREAM)
                 if isinstance(frame, EndFrame):
                     await self._wait_for_endframe()
                 running = not isinstance(frame, (StopTaskFrame, EndFrame))
                 should_cleanup = not isinstance(frame, StopTaskFrame)
+                logger.debug("{} running {}, should_cleanup {}", self.__class__.__name__, running, should_cleanup)
+                logger.debug("{} push queue: Done processing frame {}", self.__class__.__name__, frame)
                 self._push_queue.task_done()
             except asyncio.CancelledError:
                 break
@@ -198,6 +201,7 @@ class PipelineTask:
         while True:
             try:
                 frame = await self._up_queue.get()
+                logger.debug("{} up_queue: Processing frame {}", self.__class__.__name__, frame)
                 if isinstance(frame, EndTaskFrame):
                     await self.queue_frame(EndFrame())
                 elif isinstance(frame, CancelTaskFrame):
@@ -205,6 +209,7 @@ class PipelineTask:
                 elif isinstance(frame, StopTaskFrame):
                     await self.queue_frame(StopTaskFrame())
                 self._up_queue.task_done()
+                logger.debug("{} up_queue: Done processing frame {}", self.__class__.__name__, frame)
             except asyncio.CancelledError:
                 break
 
