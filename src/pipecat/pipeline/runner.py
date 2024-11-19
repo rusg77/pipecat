@@ -36,6 +36,8 @@ class PipelineRunner:
 
     async def cancel(self):
         logger.debug(f"Canceling runner {self}")
+        for k, val in self._tasks.items():
+            logger.debug("{} canceling {} for {}", {self.__class__.__name__}, k, val )
         await asyncio.gather(*[t.cancel() for t in self._tasks.values()])
 
     def _setup_sigint(self):

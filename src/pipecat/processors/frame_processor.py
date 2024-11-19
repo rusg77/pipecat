@@ -146,6 +146,7 @@ class FrameProcessor:
         return self._clock
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
+        logger.debug("{} Start processing frame {}, during {}", self.__class__.__name__, frame, direction)
         if isinstance(frame, StartFrame):
             self._clock = frame.clock
             self._allow_interruptions = frame.allow_interruptions
@@ -157,15 +158,18 @@ class FrameProcessor:
             await self.stop_all_metrics()
         elif isinstance(frame, StopInterruptionFrame):
             self._should_report_ttfb = True
+        logger.debug("{} Done processing frame {}, during {}", self.__class__.__name__, frame, direction)
 
     async def push_error(self, error: ErrorFrame):
         await self.push_frame(error, FrameDirection.UPSTREAM)
 
     async def push_frame(self, frame: Frame, direction: FrameDirection = FrameDirection.DOWNSTREAM):
+        logger.debug("{} Start pushing frame {}, during {}", self.__class__.__name__, frame, direction)
         if isinstance(frame, SystemFrame):
             await self.__internal_push_frame(frame, direction)
         else:
             await self.__push_queue.put((frame, direction))
+        logger.debug("{} Done pushing frame {}, during {}", self.__class__.__name__, frame, direction)
 
     def event_handler(self, event_name: str):
         def decorator(handler):
@@ -203,10 +207,10 @@ class FrameProcessor:
     async def __internal_push_frame(self, frame: Frame, direction: FrameDirection):
         try:
             if direction == FrameDirection.DOWNSTREAM and self._next:
-                logger.trace(f"Pushing {frame} from {self} to {self._next}")
+                logger.trace("{} Pushing {} from {} to {}", self.__class__.__name__, frame, self, self._next)
                 await self._next.process_frame(frame, direction)
             elif direction == FrameDirection.UPSTREAM and self._prev:
-                logger.trace(f"Pushing {frame} upstream from {self} to {self._prev}")
+                logger.trace("{} Pushing {} upstream from {} to {}", self.__class__.__name__, frame, self, self._prev)
                 await self._prev.process_frame(frame, direction)
         except Exception as e:
             logger.exception(f"Uncaught exception in {self}: {e}")
