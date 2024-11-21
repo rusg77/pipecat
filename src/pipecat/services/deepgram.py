@@ -5,6 +5,7 @@
 #
 
 import asyncio
+import uuid
 from typing import AsyncGenerator
 
 from loguru import logger
@@ -186,7 +187,10 @@ class DeepgramSTTService(STTService):
         await self._disconnect()
 
     async def run_stt(self, audio: bytes) -> AsyncGenerator[Frame, None]:
+        _id = str(uuid.uuid1())
+        logger.trace("Deepgram got audio of len {}, uuid: {}", len(audio), _id)
         await self._connection.send(audio)
+        logger.trace("Deepgram awaited {}", _id)
         yield None
 
     async def _connect(self):
