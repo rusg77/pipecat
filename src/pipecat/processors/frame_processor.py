@@ -190,11 +190,15 @@ class FrameProcessor:
 
     async def _start_interruption(self):
         # Cancel the task. This will stop pushing frames downstream.
+        logger.trace("{} _start_interruption: 10", self.__class__.__name__)
         self.__push_frame_task.cancel()
+        logger.trace("{} _start_interruption: 20", self.__class__.__name__)
         await self.__push_frame_task
 
+        logger.trace("{} _start_interruption: 30", self.__class__.__name__)
         # Create a new queue and task.
         self.__create_push_task()
+        logger.trace("{} _start_interruption: 40", self.__class__.__name__)
 
     async def _stop_interruption(self):
         # Nothing to do right now.
@@ -214,8 +218,11 @@ class FrameProcessor:
             logger.exception(f"Uncaught exception in {self}: {e}")
 
     def __create_push_task(self):
+        logger.trace("{} __create_push_task: 10", self.__class__.__name__)
         self.__push_queue = asyncio.Queue()
+        logger.trace("{} __create_push_task: 20", self.__class__.__name__)
         self.__push_frame_task = self.get_event_loop().create_task(self.__push_frame_task_handler())
+        logger.trace("{} __create_push_task: 30", self.__class__.__name__)
 
     async def __push_frame_task_handler(self):
         running = True

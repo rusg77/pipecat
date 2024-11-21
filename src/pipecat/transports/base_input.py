@@ -66,6 +66,7 @@ class BaseInputTransport(FrameProcessor):
     async def push_audio_frame(self, frame: InputAudioRawFrame):
         logger.trace("Pushing audio frame {}", frame)
         if self._params.audio_in_enabled or self._params.vad_enabled:
+            logger.trace("Pushing audio frame queue size {}", self._audio_in_queue.qsize())
             await self._audio_in_queue.put(frame)
         logger.trace("Done pushing audio frame {}", frame)
 
@@ -107,7 +108,7 @@ class BaseInputTransport(FrameProcessor):
         else:
             await self.push_frame(frame, direction)
 
-        logger.trace("{} Pushing {} from {} to {}", self.__class__.__name__, frame, self, self._next)
+        logger.trace("{} Done pushing {} from {} to {}", self.__class__.__name__, frame, self, self._next)
 
     #
     # Handle interruptions
