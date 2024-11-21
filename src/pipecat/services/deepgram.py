@@ -210,6 +210,7 @@ class DeepgramSTTService(STTService):
 
     async def _on_message(self, *args, **kwargs):
         result: LiveResultResponse = kwargs["result"]
+
         if len(result.channel.alternatives) == 0:
             return
         is_final = result.is_final

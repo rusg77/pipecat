@@ -64,14 +64,17 @@ class BaseInputTransport(FrameProcessor):
         return self._params.vad_analyzer
 
     async def push_audio_frame(self, frame: InputAudioRawFrame):
+        logger.trace("Pushing audio frame {}", InputAudioRawFrame)
         if self._params.audio_in_enabled or self._params.vad_enabled:
             await self._audio_in_queue.put(frame)
+        logger.trace("Done pushing audio frame {}", InputAudioRawFrame)
 
     #
     # Frame processor
     #
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
+        logger.trace("{} Pushing {} from {} to {}", self.__class__.__name__, frame, self, self._next)
         await super().process_frame(frame, direction)
 
         # Specific system frames
@@ -104,11 +107,14 @@ class BaseInputTransport(FrameProcessor):
         else:
             await self.push_frame(frame, direction)
 
+        logger.trace("{} Pushing {} from {} to {}", self.__class__.__name__, frame, self, self._next)
+
     #
     # Handle interruptions
     #
 
     async def _handle_interruptions(self, frame: Frame):
+        logger.trace("{} Handling interruptions {}", self.__class__.__name__, frame)
         if self.interruptions_allowed:
             # Make sure we notify about interruptions quickly out-of-band.
             if isinstance(frame, UserStartedSpeakingFrame):
@@ -124,6 +130,7 @@ class BaseInputTransport(FrameProcessor):
                 await self.push_frame(StopInterruptionFrame())
 
         await self.push_frame(frame)
+        logger.trace("{} Done handling interruptions {}", self.__class__.__name__, frame)
 
     #
     # Audio input
@@ -162,6 +169,7 @@ class BaseInputTransport(FrameProcessor):
         while True:
             try:
                 frame: InputAudioRawFrame = await self._audio_in_queue.get()
+                logger.trace("{} Received InputAudioRawFrame", self.__class__.__name__, frame)
 
                 audio_passthrough = True
 
@@ -176,6 +184,7 @@ class BaseInputTransport(FrameProcessor):
                     await self.push_frame(frame)
 
                 self._audio_in_queue.task_done()
+                logger.trace("{} Task done InputAudioRawFrame", self.__class__.__name__, frame)
             except asyncio.CancelledError:
                 break
             except Exception as e:
