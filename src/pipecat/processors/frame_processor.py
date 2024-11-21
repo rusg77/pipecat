@@ -146,7 +146,6 @@ class FrameProcessor:
         return self._clock
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
-        logger.debug("{} Start processing frame {}, during {}", self.__class__.__name__, frame, direction)
         if isinstance(frame, StartFrame):
             self._clock = frame.clock
             self._allow_interruptions = frame.allow_interruptions
@@ -158,18 +157,15 @@ class FrameProcessor:
             await self.stop_all_metrics()
         elif isinstance(frame, StopInterruptionFrame):
             self._should_report_ttfb = True
-        logger.debug("{} Done processing frame {}, during {}", self.__class__.__name__, frame, direction)
 
     async def push_error(self, error: ErrorFrame):
         await self.push_frame(error, FrameDirection.UPSTREAM)
 
     async def push_frame(self, frame: Frame, direction: FrameDirection = FrameDirection.DOWNSTREAM):
-        logger.debug("{} Start pushing frame {}, during {}", self.__class__.__name__, frame, direction)
         if isinstance(frame, SystemFrame):
             await self.__internal_push_frame(frame, direction)
         else:
             await self.__push_queue.put((frame, direction))
-        logger.debug("{} Done pushing frame {}, during {}", self.__class__.__name__, frame, direction)
 
     def event_handler(self, event_name: str):
         def decorator(handler):
