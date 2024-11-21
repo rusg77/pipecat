@@ -117,7 +117,7 @@ class BaseInputTransport(FrameProcessor):
         logger.trace("{} Handling interruptions {}", self.__class__.__name__, frame)
         if self.interruptions_allowed:
             # Make sure we notify about interruptions quickly out-of-band.
-            if isinstance(frame, UserStartedSpeakingFrame)q:
+            if isinstance(frame, UserStartedSpeakingFrame):
                 logger.debug("User started speaking")
                 await self._start_interruption()
                 # Push an out-of-band frame (i.e. not using the ordered push
