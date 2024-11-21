@@ -64,10 +64,10 @@ class BaseInputTransport(FrameProcessor):
         return self._params.vad_analyzer
 
     async def push_audio_frame(self, frame: InputAudioRawFrame):
-        logger.trace("Pushing audio frame {}", InputAudioRawFrame)
+        logger.trace("Pushing audio frame {}", frame)
         if self._params.audio_in_enabled or self._params.vad_enabled:
             await self._audio_in_queue.put(frame)
-        logger.trace("Done pushing audio frame {}", InputAudioRawFrame)
+        logger.trace("Done pushing audio frame {}", frame)
 
     #
     # Frame processor
