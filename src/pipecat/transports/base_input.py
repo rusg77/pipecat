@@ -117,7 +117,7 @@ class BaseInputTransport(FrameProcessor):
         logger.trace("{} Handling interruptions {}", self.__class__.__name__, frame)
         if self.interruptions_allowed:
             # Make sure we notify about interruptions quickly out-of-band.
-            if isinstance(frame, UserStartedSpeakingFrame):
+            if isinstance(frame, UserStartedSpeakingFrame)q:
                 logger.debug("User started speaking")
                 await self._start_interruption()
                 # Push an out-of-band frame (i.e. not using the ordered push
@@ -169,7 +169,7 @@ class BaseInputTransport(FrameProcessor):
         while True:
             try:
                 frame: InputAudioRawFrame = await self._audio_in_queue.get()
-                logger.trace("{} Received InputAudioRawFrame", self.__class__.__name__, frame)
+                logger.trace("{} Received InputAudioRawFrame {}", self.__class__.__name__, frame)
 
                 audio_passthrough = True
 
@@ -184,7 +184,7 @@ class BaseInputTransport(FrameProcessor):
                     await self.push_frame(frame)
 
                 self._audio_in_queue.task_done()
-                logger.trace("{} Task done InputAudioRawFrame", self.__class__.__name__, frame)
+                logger.trace("{} Task done InputAudioRawFrame {}", self.__class__.__name__, frame)
             except asyncio.CancelledError:
                 break
             except Exception as e:
