@@ -270,7 +270,11 @@ class BaseOpenAILLMService(LLMService):
             for index, (function_name, arguments, tool_id) in enumerate(
                 zip(functions_list, arguments_list, tool_id_list), start=1
             ):
-                if self.has_function(function_name):
+                if not self.has_function(function_name):
+                    raise OpenAIUnhandledFunctionException(
+                        f"The LLM tried to call a function named '{function_name}', but there isn't a callback registered for that function."
+                    )
+                try:
                     run_llm = False
                     arguments = json.loads(arguments)
                     await self.call_function(
@@ -280,10 +284,10 @@ class BaseOpenAILLMService(LLMService):
                         tool_call_id=tool_id,
                         run_llm=run_llm,
                     )
-                else:
-                    raise OpenAIUnhandledFunctionException(
-                        f"The LLM tried to call a function named '{function_name}', but there isn't a callback registered for that function."
-                    )
+                except Exception as e:
+                    logger.opt(exception=e).warn("Arguments: {}", arguments)
+                    raise OpenAIUnhandledFunctionException("Something went wrong.")
+
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         await super().process_frame(frame, direction)

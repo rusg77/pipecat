@@ -277,6 +277,8 @@ class DailyTransportClient(EventHandler):
         self._speaker.read_frames(num_frames, completion=completion_callback(future))
         audio = await future
 
+        logger.trace("len(audio): {}", len(audio))
+
         if len(audio) > 0:
             return InputAudioRawFrame(
                 audio=audio, sample_rate=sample_rate, num_channels=num_channels

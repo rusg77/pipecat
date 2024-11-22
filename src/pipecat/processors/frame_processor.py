@@ -221,15 +221,19 @@ class FrameProcessor:
 
     async def _start_interruption(self):
         # Cancel the push frame task. This will stop pushing frames downstream.
+        logger.trace("{} _start_interruption: 10", self.__class__.__name__)
         await self.__cancel_push_task()
 
         # Cancel the input task. This will stop processing queued frames.
+        logger.trace("{} _start_interruption: 20", self.__class__.__name__)
         await self.__cancel_input_task()
 
         # Create a new input queue and task.
+        logger.trace("{} _start_interruption: 30", self.__class__.__name__)
         self.__create_input_task()
 
         # Create a new output queue and task.
+        logger.trace("{} _start_interruption: 40", self.__class__.__name__)
         self.__create_push_task()
 
     async def _stop_interruption(self):
@@ -239,11 +243,13 @@ class FrameProcessor:
     async def __internal_push_frame(self, frame: Frame, direction: FrameDirection):
         try:
             if direction == FrameDirection.DOWNSTREAM and self._next:
-                logger.trace(f"Pushing {frame} from {self} to {self._next}")
+                logger.trace("{} Pushing {} from {} to {}", self.__class__.__name__, frame, self, self._next)
                 await self._next.queue_frame(frame, direction)
+                logger.trace("{} Done pushing {} from {} to {}", self.__class__.__name__, frame, self, self._next)
             elif direction == FrameDirection.UPSTREAM and self._prev:
-                logger.trace(f"Pushing {frame} upstream from {self} to {self._prev}")
+                logger.trace("{} Pushing {} upstream from {} to {}", self.__class__.__name__, frame, self, self._prev)
                 await self._prev.queue_frame(frame, direction)
+                logger.trace("{} Done pushing {} upstream from {} to {}", self.__class__.__name__, frame, self, self._prev)
         except Exception as e:
             logger.exception(f"Uncaught exception in {self}: {e}")
             await self.push_error(ErrorFrame(str(e)))
@@ -257,8 +263,11 @@ class FrameProcessor:
         self.__input_event = asyncio.Event()
 
     async def __cancel_input_task(self):
+        logger.trace("{} __cancel_input_task: 10", self.__class__.__name__)
         self.__input_frame_task.cancel()
+        logger.trace("{} __cancel_input_task: 20", self.__class__.__name__)
         await self.__input_frame_task
+        logger.trace("{} __cancel_input_task: 30", self.__class__.__name__)
 
     async def __input_frame_task_handler(self):
         running = True
@@ -284,8 +293,11 @@ class FrameProcessor:
                 break
 
     def __create_push_task(self):
+        logger.trace("{} __create_push_task: 10", self.__class__.__name__)
         self.__push_queue = asyncio.Queue()
+        logger.trace("{} __create_push_task: 20", self.__class__.__name__)
         self.__push_frame_task = self.get_event_loop().create_task(self.__push_frame_task_handler())
+        logger.trace("{} __create_push_task: 30", self.__class__.__name__)
 
     async def __cancel_push_task(self):
         self.__push_frame_task.cancel()
